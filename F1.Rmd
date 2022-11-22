@@ -1,0 +1,52 @@
+---
+title: "F1"
+author: "David Nicolay"
+date: "2022-11-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, include = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(gganimate)
+library(janitor)
+```
+
+```{r load datasets}
+circuits <- read.csv("data/circuits.csv", header = TRUE)
+results <- read.csv("data/results.csv", header = TRUE)
+constructors <- read.csv("data/constructors.csv", header = TRUE)
+races <- read.csv("data/races.csv", header = TRUE)
+```
+
+### Data Preprocessing
+```{r preprocessing}
+# Drop unused variables
+results_new <- results %>% filter(position == 1) %>% select(c(1,2,3,4,7))
+results_new <- left_join(results_new,
+                                         constructors,
+                                         by = "constructorId",
+                                         copy = FALSE,
+                                         suffix = c(".x", ".y"))
+results_new <- left_join(results_new,
+                         races,
+                         by = "raceId")
+results_new <- results_new %>% select(c(1:16))
+
+# Get only constructor columns
+results_con <- results_new %>% select(c(1,2,4,6,7,8,9,10))
+#results_con <- rename(results_con, Constructor = name.x)
+```
+
+
+# Top 10 team wins
+```{r animated graph}
+# Create static graph first
+top10wins <- ggplot(results_con) + geom_bar(mapping = aes(x = Constructor)) + coord_flip() + labs(title = "Number of wins per constructor: {frame_year}") + ylab("Wins")
+top10wins
+```
+
